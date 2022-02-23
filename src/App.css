@@ -155,3 +155,11 @@
 .list-group-not-complete .list-group-item {
   background-color: #7a7979;
 }
+
+.hr {
+  border: none;
+  border-top: 3px dashed #ee9b00;
+}
+
+
+

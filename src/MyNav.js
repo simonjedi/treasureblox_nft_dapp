@@ -61,14 +61,6 @@ const MyNav = (props) => {
     }
 
 
-
-
-
-
-
-
-
-
   return(
 
     <Navbar collapseOnSelect className="fixed-top MyBakground" expand="lg" variant="dark">
@@ -90,9 +82,11 @@ const MyNav = (props) => {
       <Navbar.Toggle aria-controls="responsive-navbar-nav" />
       <Navbar.Collapse id="responsive-navbar-nav">
         <Nav className="me-auto">
-          <Link className='customLinks' onClick={nav_home_link_click} to="/home">
-          Home
+          <Link className='customLinks' onClick={nav_home_link_click} to="">
+          Treasure Hunts
           </Link>
+
+          
 
           <NavDropdown title="How to play / Community" id="collasible-nav-dropdown">
           <NavDropdown.Item   target = "_blank" href="https://treasureblox.gitbook.io/how-to-play/">How to Play</NavDropdown.Item>

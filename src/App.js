@@ -1,4 +1,4 @@
-import { Button,Container,Nav,Navbar,NavDropdown,Carousel,Card } from 'react-bootstrap';
+import {Tooltip,OverlayTrigger,Form,ButtonGroup,ButtonToolbar,CardColumns,CardGroup,Card,Button,Container,Nav,Navbar,NavDropdown,Carousel,Row,Col,Modal } from 'react-bootstrap';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -7,9 +7,17 @@ import MyNav from './MyNav';
 import React, { Component, useState, useEffect } from 'react'
 import getWeb3 from "./getWeb3";
 
+import SingleNFT from './SingleNFT';
+
+
+// import { NftProvider, useNft } from "use-nft"
+
 import Connection from "./Connection";
 import { useWallet, UseWalletProvider } from 'use-wallet'
+
 import img1 from './components/Structure/images/PowerPose.gif';
+import img2 from "./components/Structure/images/NFT_LOOTBOX_HEADER.png"
+
 
 import {
   BrowserRouter as Router,
@@ -19,50 +27,52 @@ import {
   Redirect
 } from "react-router-dom";
 
-import Home from "./Home";
 
 import { Helmet } from 'react-helmet';
 
-import axios from 'axios';
+import axios from "axios";
+
+import ABI from './erc1155.json'
+
+import { HashLink as LinkHeader } from 'react-router-hash-link';
 
 
-  function useWindowSize() {
-    // Initialize state with undefined width/height so server and client renders match
-    // Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
-    const [windowSize, setWindowSize] = useState({
-      width: undefined,
-      height: undefined,
-    });
+function useWindowSize() {
+  // Initialize state with undefined width/height so server and client renders match
+  const [windowSize, setWindowSize] = useState({
+    width: undefined,
+    height: undefined,
+  });
 
-    useEffect(() => {
+  useEffect(() => {
 
+    // Handler to call on window resize
+    function handleResize() {
+      // Set window width/height to state
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    }
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+    // Call handler right away so state gets updated with initial window size
+    handleResize();
+    // Remove event listener on cleanup
+    return () => window.removeEventListener("resize", handleResize);
 
-
-      // Handler to call on window resize
-      function handleResize() {
-        // Set window width/height to state
-        setWindowSize({
-          width: window.innerWidth,
-          height: window.innerHeight,
-        });
-      }
-      // Add event listener
-      window.addEventListener("resize", handleResize);
-      // Call handler right away so state gets updated with initial window size
-      handleResize();
-      // Remove event listener on cleanup
-      return () => window.removeEventListener("resize", handleResize);
-
-      window.scrollTo(0, 0);
+    window.scrollTo(0, 0);
 
 
-    }, []); // Empty array ensures that effect is only run on mount
+  }, []); // Empty array ensures that effect is only run on mount
 
 
-    return windowSize;
-  }
+  return windowSize;
+}
+
 
 const App = (props) => {
+
 
   const { width, height } = useWindowSize();
 // Set Blox Contracts Starts
@@ -74,6 +84,11 @@ const App = (props) => {
   // account info
   const [accounts,setAccounts] = useState(null)
 
+  const [erc1155_contract,setErc1155_contract] = useState(null)
+  const [erc1155_contract_address,setErc1155_contract_address] = useState(null)
+
+  const [nft_balanceOf, setnft_balanceOf] = useState(true);
+
   // wallet info
   const [wallet_for_google, setWallet_for_google_treasurebloxNative_] = useState('Unknown');
   const [ip, setIP_treasurebloxNative_] = useState('');
@@ -83,6 +98,32 @@ const App = (props) => {
 
     // Loading state
   const [isLoading, setIsLoading] = useState(true);
+
+  var [data,setData]=useState([]);
+  var tempArray = []
+
+  const [show, setShow] = useState(false);
+  
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+  
+  const [index, setIndex] = useState(0);
+
+  const handleSelect = (selectedIndex, e) => {
+    setIndex(selectedIndex);
+  };
+
+  const learn_more = (event) => {
+    window.dataLayer.push({
+      event: "wallet_information",
+      wallet: props.wallet_for_google,
+      wallet_ip: props.ip,
+      url: window.location.pathname,
+      buttonClicked:"learn_more_clicked"
+    });
+  }
+
+  let myArray = []
 
   useEffect(() => {
 
@@ -97,158 +138,396 @@ const App = (props) => {
   useEffect(() => {
 
 
-      const init = async() => {
+  const init = async() => {
 
-        if (isLoading){
-          window.scrollTo({top: 0})
-        }
+    if (isLoading){
+      window.scrollTo({top: 0})
+    }
 
-        const web3 = await getWeb3();
-        const accounts = await web3.eth.getAccounts();
-        setAccounts(accounts[0])
+    const web3 = await getWeb3();
+    const accounts = await web3.eth.getAccounts();
+    setAccounts(accounts[0])
 
-        const Moralis = require('moralis');
+    const Moralis = require('moralis');
 
-        // Loading state
+    // Loading state
 
+    const isWeb3Active = Moralis.ensureWeb3IsInstalled()
 
+    if (isWeb3Active) {
+    } else {
+      await Moralis.enableWeb3();
+    }
 
-
-        const isWeb3Active = Moralis.ensureWeb3IsInstalled()
-
-        if (isWeb3Active) {
-        } else {
-          await Moralis.enableWeb3();
-        }
-
-        const currentChainId = await Moralis.getChainId();
+    const currentChainId = await Moralis.getChainId();
 
 
-        // START NETWORK IF BSC
-        if (currentChainId === 56) {
+    // START NETWORK IF BSC
+    if (currentChainId === 56) {
 
-        setIs_Meter(false)
+    setIs_Meter(false)
 
-        setWallet_for_google_treasurebloxNative_("w="+accounts.toString())
+    setWallet_for_google_treasurebloxNative_("w="+accounts.toString())
 
-        // End of Game timer code
+    // End of Game timer code
 
-      }// End of network if statement BSC
+  }// End of network if statement BSC
 
-      // STARTING METER HERE
-      // Meter Testnet
-      // if (currentChainId === 83) {
-      // https://rpctest.meter.io/
-
-
-      if (currentChainId === 82) {
+  // STARTING METER HERE
+  // Meter Testnet
+  // if (currentChainId === 83) {
+  // https://rpctest.meter.io/
 
 
-        setIs_Meter(true)
+  if (currentChainId === 82) {
 
-    } // End of network if statement METER
+    setIs_Meter(true)
 
+    // SET ACCOUNTS
+    const accounts = await web3.eth.getAccounts();
 
+    setAccounts(accounts)
+    setWeb3(web3)
+
+    const ERC1155_CONTRACT = new web3.eth.Contract(ABI,"https://rpc.meter.io/" && "0x4FBd2Db19de40e0fD36e91d7a848F84515a54242");
+    const ERC1155_CONTRACT_ADDRESS = "0x4FBd2Db19de40e0fD36e91d7a848F84515a54242"
+    
+    setErc1155_contract(ERC1155_CONTRACT)
+    setErc1155_contract_address(ERC1155_CONTRACT_ADDRESS)
+
+    
+    
+
+    const timer = window.setInterval( async() => {
+
+      var nft_balanceOf = await ERC1155_CONTRACT.methods.balanceOf(accounts[0],1).call();
+      // balanceOfresult = nft_balanceOf.substring(0, tokenContract_xyz_.length-18)
+      setnft_balanceOf(nft_balanceOf)
+
+      for (let i = 0; i < 48; i++) {
+        
+      var nft_metadata = await ERC1155_CONTRACT.methods.uri(i).call();
+      
+      nft_metadata = nft_metadata.split("https://api.treasureblox.finance/");
+
+        fetch(nft_metadata[1]
+          ,{
+            headers : { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
+          }
+          ).then(function(response){
+              // console.log(response)
+              return response.json();
+            }).then(function(myJson) {
+              // console.log(myJson,"this is the log");
+              var json = myJson;
+              myArray.push(json);
+              // console.log(myArray)
+              // setData([json])
+            });
       }
-      init()
+      // console.log(myArray)
+      setData(myArray)
+
+    }, 1000);
 
 
-    },[
-
-    is_meter,web3,accounts,wallet_for_google,ip,balance,isLoading
-    ])
+} // End of network if statement METER
 
 
-    return (
+  }
+  init()
 
-        <div className="customFont">
+  },[is_meter,web3,accounts,wallet_for_google,ip,balance,isLoading,nft_balanceOf,data])
 
-{isLoading?(
+ 
+  return (
 
-
-  <div style={{height: height*5}} className="background">
-
-<div className="loading">
-<img
-  alt="treasureblox_logo"
-  src={img1}
-  width="500"
-  className="d-inline-block align-middle"
-/>
+    <div className="background">
 
 
-</div>
-<div className="siteTitle caption blink_me">Loading The Metaverse!</div>
 
 
-</div>
 
-):(<div>
+    <Helmet>
+    <Modal.Title>TreasureBlox Lootbox NFT's</Modal.Title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 
+    </Helmet>
 
-        <Helmet>
-          <title>TreasureBlox | The Worlds First Metaverse TreasureHunt Adventure</title>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-
-        </Helmet>
-
-        <Router>
+    <Router>
 
 
         <Switch>
 
-
-              <Route path="/home">
-              <MyNav accounts={accounts} is_meter={is_meter} onClick={() => Connection()}/>
-
-                <Home
-                is_meter={is_meter}
-                web3={web3}
-                wallet_for_google={wallet_for_google}
-                ip={ip}
-                />
-
-
-              </Route>
-
               <Route path="">
+
               <MyNav {...props} accounts={accounts} is_meter={is_meter} onClick={() => Connection()}/>
 
-                <Home
+                <Container className='mt-5' fluid="md">
 
-                is_meter={is_meter}
-                web3={web3}
-                wallet_for_google={wallet_for_google}
-                ip={ip}
-                />
 
+                <div id="top" className="spaceTopHome">
+
+
+
+
+                </div>
+                <br/> 
+
+                <div style={{ color: 'white' }}>
+
+                <Modal show={show} onHide={handleClose} 
+                size="md"
+                aria-labelledby="contained-modal-title-vcenter"
+                centered >
+                <Modal.Header closeButton>
+                  <Modal.Title>TreasureBlox Lootbox NFT's</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>Cost for 3 random NFT's - 2 MTRG</Modal.Body>
+                <Modal.Footer>
+                  <Button variant="secondary" onClick={handleClose}>
+                    Close
+                  </Button>
+                  <Button variant="primary" onClick={handleClose}>
+                    Mint
+                  </Button>
+                </Modal.Footer>
+                </Modal>
+
+
+                <Card.Img variant="top" src={img2} alt="Logo" className='customRounded'/>
+                <center>
+                  <h3 >NFT Lootbox - Collect and trade elements to build your own charicter NFT's, gain in game abilities to complete our treasurehunts & more!</h3>
+                  <p>
+                    Click generate to mint 3 random nft's - cost 2 MTRG!
+                  </p>
+                  <LinkHeader to="/home#yourAnchorTag">
+                  <Button  className="customButton" onClick={handleShow} id="header_play_to_earn" to="/home#yourAnchorTag" style={{margin:'10px'}}>Start</Button>
+                </LinkHeader>
+
+                </center>
+
+
+                <br/>
+                <div className="hr">
+                </div>
+                <br/>
+
+                <center>
+                  <h3 sm={12} lg={4} className="d-none d-lg-block">YOUR COLLECTION</h3>
+                </center>
+
+                
+
+
+                {data.map((items)=> {
+                  return <SingleNFT item={items}/>
+                    })}
+
+                 
+                        
+                
+
+
+
+
+
+
+
+                {/* <Carousel  activeIndex={index} onSelect={handleSelect}>
+                  <Carousel.Item interval={1000}>
+                    <Container>
+                      <Row>
+                        <Col>
+
+                        <SingleNFT {...props}/>
+
+                        <br className="d-lg-none"/>
+                        <br className="d-lg-none"/>
+                        
+                        </Col>
+                        <Col>
+
+                        <SingleNFT {...props}/>
+
+                        <br className="d-lg-none"/>
+                        <br className="d-lg-none"/>
+                        
+                        </Col>
+                        <Col>
+
+                        <SingleNFT {...props}/>
+
+                        <br className="d-lg-none"/>
+                        <br className="d-lg-none"/>
+                        
+                        </Col>
+                        <Col>
+
+                        <SingleNFT {...props}/>
+
+                        <br className="d-lg-none"/>
+                        <br className="d-lg-none"/>
+                        
+                        </Col>
+                      
+
+                      </Row>
+                    </Container>
+                  </Carousel.Item>
+                  <Carousel.Item>
+                    <Container>
+                      <Row>
+                        <Col>
+
+                        <SingleNFT {...props}/>
+
+                        <br className="d-lg-none"/>
+                        <br className="d-lg-none"/>
+                        
+                        </Col>
+                        <Col>
+
+                        <SingleNFT {...props}/>
+
+                        <br className="d-lg-none"/>
+                        <br className="d-lg-none"/>
+                        
+                        </Col>
+                        <Col>
+
+                        <SingleNFT {...props}/>
+
+                        <br className="d-lg-none"/>
+                        <br className="d-lg-none"/>
+                        
+                        </Col>
+                        <Col>
+
+                        <SingleNFT {...props}/>
+
+                        <br className="d-lg-none"/>
+                        <br className="d-lg-none"/>
+                        
+                        </Col>
+                      
+
+                      </Row>
+                    </Container>
+                  </Carousel.Item>
+                  <Carousel.Item>
+                    <Container>
+                      <Row>
+                        <Col>
+
+                        <SingleNFT {...props}/>
+
+                        <br className="d-lg-none"/>
+                        <br className="d-lg-none"/>
+                        
+                        </Col>
+                        <Col>
+
+                        <SingleNFT {...props}/>
+
+                        <br className="d-lg-none"/>
+                        <br className="d-lg-none"/>
+                        
+                        </Col>
+                        <Col>
+
+                        <SingleNFT {...props}/>
+
+                        <br className="d-lg-none"/>
+                        <br className="d-lg-none"/>
+                        
+                        </Col>
+                        <Col>
+
+                        <SingleNFT {...props}/>
+
+                        <br className="d-lg-none"/>
+                        <br className="d-lg-none"/>
+                        
+                        </Col>
+                      
+
+                      </Row>
+                    </Container>
+                  </Carousel.Item>
+
+                </Carousel> */}
+
+
+
+                <br/>
+                <br/>
+
+
+
+
+                NFT BAL: {nft_balanceOf}
+
+
+
+                {/* <br/>
+                {props.data.image}
+                <br/> 
+
+                {props.data.name}
+                <br/> 
+
+                {props.data.attributes[0].trait_type}
+                <br/> 
+
+                {props.data.attributes[0].value} */}
+
+
+
+
+
+
+
+
+
+
+                </div>
+
+
+
+
+                </Container>
+
+          
 
               </Route>
 
         </Switch>
         <div>
 
-        <Redirect component={Home} />
         </div>
 
 
-</Router>
+    </Router>
+
+    
 
 
 
 
+    </div>
 
 
-
-</div>)}
-
-
-
-      </div>
-
-
-    );
+  );
 
 }
+  
+  
+
+
 
 export default App;
+
