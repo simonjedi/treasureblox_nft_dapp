@@ -1,18 +1,23 @@
 import {Tooltip,OverlayTrigger,Form,ButtonGroup,ButtonToolbar,CardColumns,CardGroup,Card,Button,Container,Nav,Navbar,NavDropdown,Carousel,Row,Col,Modal } from 'react-bootstrap';
+import ListGroup from 'react-bootstrap/ListGroup'
+
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import MyNav from './MyNav';
 
 import React, { Component, useState, useEffect } from 'react'
+
 import getWeb3 from "./getWeb3";
 
+// Componant
 import SingleNFT from './SingleNFT';
 
 
 // import { NftProvider, useNft } from "use-nft"
 
 import Connection from "./Connection";
+
 import { useWallet, UseWalletProvider } from 'use-wallet'
 
 import img1 from './components/Structure/images/PowerPose.gif';
@@ -75,19 +80,17 @@ const App = (props) => {
 
 
   const { width, height } = useWindowSize();
-// Set Blox Contracts Starts
 
+  // Set Web 3
   const [web3,setWeb3] = useState(null)
-  // const [accounts,setAccounts] = useState(null)
   const [balance,setBalance] = useState(null)
 
-  // account info
+  // Account info
   const [accounts,setAccounts] = useState(null)
 
+  // Contracts
   const [erc1155_contract,setErc1155_contract] = useState(null)
   const [erc1155_contract_address,setErc1155_contract_address] = useState(null)
-
-  const [nft_balanceOf, setnft_balanceOf] = useState(true);
 
   // wallet info
   const [wallet_for_google, setWallet_for_google_treasurebloxNative_] = useState('Unknown');
@@ -99,20 +102,20 @@ const App = (props) => {
     // Loading state
   const [isLoading, setIsLoading] = useState(true);
 
+  // Json
   var [data,setData]=useState([]);
   var tempArray = []
 
+  // Modal
   const [show, setShow] = useState(false);
-  
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   
-  const [index, setIndex] = useState(0);
+  // Componant
+  const [index, setIndex] = useState(null);
+  const [nft_balanceOf, setnft_balanceOf] = useState(true);
 
-  const handleSelect = (selectedIndex, e) => {
-    setIndex(selectedIndex);
-  };
-
+  // Google Analytics
   const learn_more = (event) => {
     window.dataLayer.push({
       event: "wallet_information",
@@ -125,15 +128,15 @@ const App = (props) => {
 
   let myArray = []
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    // Wait for 3 seconds
+  //   // Wait for 3 seconds
 
-    setTimeout(() => {
+  //   setTimeout(() => {
 
-      setIsLoading(false);
-    }, 4000);
-  }, []);
+  //     setIsLoading(false);
+  //   }, 3000);
+  // }, []);
 
   useEffect(() => {
 
@@ -195,41 +198,36 @@ const App = (props) => {
     setErc1155_contract(ERC1155_CONTRACT)
     setErc1155_contract_address(ERC1155_CONTRACT_ADDRESS)
 
-    
-    
-
     const timer = window.setInterval( async() => {
 
-      var nft_balanceOf = await ERC1155_CONTRACT.methods.balanceOf(accounts[0],1).call();
-      // balanceOfresult = nft_balanceOf.substring(0, tokenContract_xyz_.length-18)
-      setnft_balanceOf(nft_balanceOf)
-
       for (let i = 0; i < 48; i++) {
+        setIndex(i)
+        var nft_metadata = await ERC1155_CONTRACT.methods.uri(i).call();
         
-      var nft_metadata = await ERC1155_CONTRACT.methods.uri(i).call();
-      
-      nft_metadata = nft_metadata.split("https://api.treasureblox.finance/");
+        nft_metadata = nft_metadata.split("https://api.treasureblox.finance/");
 
-        fetch(nft_metadata[1]
-          ,{
-            headers : { 
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
+          fetch(nft_metadata[1]
+            ,{
+              headers : { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              }
             }
-          }
-          ).then(function(response){
-              // console.log(response)
-              return response.json();
-            }).then(function(myJson) {
-              // console.log(myJson,"this is the log");
-              var json = myJson;
-              myArray.push(json);
-              // console.log(myArray)
-              // setData([json])
-            });
+            ).then(function(response){
+
+                return response.json();
+
+              }).then(function(myJson) {
+
+                var json = myJson;
+
+                myArray.push(json);
+
+              });
       }
-      // console.log(myArray)
       setData(myArray)
+      
+
 
     }, 1000);
 
@@ -240,16 +238,13 @@ const App = (props) => {
   }
   init()
 
-  },[is_meter,web3,accounts,wallet_for_google,ip,balance,isLoading,nft_balanceOf,data])
+  },[is_meter,web3,accounts,wallet_for_google,ip,balance,isLoading,nft_balanceOf,data,index])
 
- 
+  console.log(index,"index")
+
   return (
 
-    <div className="background">
-
-
-
-
+    <div className="background customFont" >
 
     <Helmet>
     <Modal.Title>TreasureBlox Lootbox NFT's</Modal.Title>
@@ -259,7 +254,6 @@ const App = (props) => {
 
     <Router>
 
-
         <Switch>
 
               <Route path="">
@@ -267,7 +261,6 @@ const App = (props) => {
               <MyNav {...props} accounts={accounts} is_meter={is_meter} onClick={() => Connection()}/>
 
                 <Container className='mt-5' fluid="md">
-
 
                 <div id="top" className="spaceTopHome">
 
@@ -310,7 +303,6 @@ const App = (props) => {
 
                 </center>
 
-
                 <br/>
                 <div className="hr">
                 </div>
@@ -320,157 +312,36 @@ const App = (props) => {
                   <h3 sm={12} lg={4} className="d-none d-lg-block">YOUR COLLECTION</h3>
                 </center>
 
+            
                 
 
+                <div className="collection-background">
 
                 {data.map((items)=> {
-                  return <SingleNFT item={items}/>
+                  return 
+                  
+                  <SingleNFT 
+                  item={items} 
+                  nft_balanceOf={nft_balanceOf} 
+                  index={index} 
+                  ERC1155_CONTRACT={props.ERC1155_CONTRACT}
+                  accounts={accounts}
+                  />
                     })}
 
+                </div>
                  
-                        
+                
                 
 
-
-
-
-
-
-
-                {/* <Carousel  activeIndex={index} onSelect={handleSelect}>
-                  <Carousel.Item interval={1000}>
-                    <Container>
-                      <Row>
-                        <Col>
-
-                        <SingleNFT {...props}/>
-
-                        <br className="d-lg-none"/>
-                        <br className="d-lg-none"/>
-                        
-                        </Col>
-                        <Col>
-
-                        <SingleNFT {...props}/>
-
-                        <br className="d-lg-none"/>
-                        <br className="d-lg-none"/>
-                        
-                        </Col>
-                        <Col>
-
-                        <SingleNFT {...props}/>
-
-                        <br className="d-lg-none"/>
-                        <br className="d-lg-none"/>
-                        
-                        </Col>
-                        <Col>
-
-                        <SingleNFT {...props}/>
-
-                        <br className="d-lg-none"/>
-                        <br className="d-lg-none"/>
-                        
-                        </Col>
-                      
-
-                      </Row>
-                    </Container>
-                  </Carousel.Item>
-                  <Carousel.Item>
-                    <Container>
-                      <Row>
-                        <Col>
-
-                        <SingleNFT {...props}/>
-
-                        <br className="d-lg-none"/>
-                        <br className="d-lg-none"/>
-                        
-                        </Col>
-                        <Col>
-
-                        <SingleNFT {...props}/>
-
-                        <br className="d-lg-none"/>
-                        <br className="d-lg-none"/>
-                        
-                        </Col>
-                        <Col>
-
-                        <SingleNFT {...props}/>
-
-                        <br className="d-lg-none"/>
-                        <br className="d-lg-none"/>
-                        
-                        </Col>
-                        <Col>
-
-                        <SingleNFT {...props}/>
-
-                        <br className="d-lg-none"/>
-                        <br className="d-lg-none"/>
-                        
-                        </Col>
-                      
-
-                      </Row>
-                    </Container>
-                  </Carousel.Item>
-                  <Carousel.Item>
-                    <Container>
-                      <Row>
-                        <Col>
-
-                        <SingleNFT {...props}/>
-
-                        <br className="d-lg-none"/>
-                        <br className="d-lg-none"/>
-                        
-                        </Col>
-                        <Col>
-
-                        <SingleNFT {...props}/>
-
-                        <br className="d-lg-none"/>
-                        <br className="d-lg-none"/>
-                        
-                        </Col>
-                        <Col>
-
-                        <SingleNFT {...props}/>
-
-                        <br className="d-lg-none"/>
-                        <br className="d-lg-none"/>
-                        
-                        </Col>
-                        <Col>
-
-                        <SingleNFT {...props}/>
-
-                        <br className="d-lg-none"/>
-                        <br className="d-lg-none"/>
-                        
-                        </Col>
-                      
-
-                      </Row>
-                    </Container>
-                  </Carousel.Item>
-
-                </Carousel> */}
-
-
-
                 <br/>
                 <br/>
 
 
-
+{/* 
 
                 NFT BAL: {nft_balanceOf}
-
+ */}
 
 
                 {/* <br/>

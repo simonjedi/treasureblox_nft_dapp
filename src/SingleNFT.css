@@ -1,15 +1,12 @@
 .customRounded{
   border-radius: 15px 50px 0px 0px;
   border:0;
-  
-
 }
-
-
 
 .cardRounded{
   border-radius: 15px 50px 10px 10px;
   border:0;
+  background-color: #001219;
 
 }
 
@@ -141,11 +138,7 @@
 
 }
 
-.nftTitle{
-  font-size: 1.8rem;
-  color: #ffffff;
-  text-align: center;
-}
+
 
 .blogTitle{
   font-size: 1.4rem;
@@ -195,8 +188,8 @@ border-bottom: 1px solid rgba(255,255,255,.25);
 
 .siteTitle{
   font-size: 1.8rem;
-  color: #ffffff;
-  text-align: center;
+  color: #000000;
+  text-align: left;
 
 }
 
@@ -210,3 +203,24 @@ border-bottom: 1px solid rgba(255,255,255,.25);
   background-color: white;
 }
 
+.nftImg {
+  margin: 15px;
+  height: auto;
+  width: 150px;
+}
+
+
+.nftTitle{
+  font-size: 1.8rem;
+  color: #ee9b00;
+  text-align: left;
+  margin: 25px;
+}
+
+
+.nftSubTitle{
+  font-size: 1.2rem;
+  color: #ffffff;
+  text-align: left;
+  margin: 25px;
+}
