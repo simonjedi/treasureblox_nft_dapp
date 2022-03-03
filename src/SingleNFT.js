@@ -19,23 +19,21 @@ import {
 
 
 
-const SingleNFT = (props) => {
+const SingleNFT = async(props) => {
 
   // Balance of NFTs
-  const [nft_balanceOf, setnft_balanceOf] = useState(0);
 
   // Transform Json Element
   var trait = props.item.attributes[0].trait_type.split("_")
 
-  // Set balance of NFT at index loc
-  setnft_balanceOf(props.ERC1155_CONTRACT.methods.balanceOf(props.accounts[0],props.index).call());
+
   // balanceOfresult = nft_balanceOf.substring(0, tokenContract_xyz_.length-18)
 
 
   return(
     <div >
 
-    {(props.nft_balanceOf >= 1)?(
+    {(props.balanceOf >= 1)?(
       <div>
          <Card className="cardRounded">
             <Row className="cardRounded">
@@ -47,7 +45,7 @@ const SingleNFT = (props) => {
 
             <Card.Text className="nftSubTitle">TRAIT TYPE: {trait[0].toUpperCase()} {trait[1].toUpperCase()}</Card.Text>
             <Card.Text className="nftSubTitle">ITEM DESCRIPTION: {props.item.attributes[0].value}</Card.Text>
-            {/* <Card.Text className="nftSubTitle">YOUR BALANCE:  {nft_balanceOf}</Card.Text> */}
+            {/* <Card.Text className="nftSubTitle">YOUR BALANCE:  {props.nft_balanceOf}</Card.Text> */}
 
             
             </Col>

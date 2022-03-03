@@ -10,7 +10,7 @@ import React, { Component, useState, useEffect } from 'react'
 
 import getWeb3 from "./getWeb3";
 
-// Componant
+// 
 import SingleNFT from './SingleNFT';
 
 
@@ -128,15 +128,15 @@ const App = (props) => {
 
   let myArray = []
 
-  // useEffect(() => {
+  useEffect(() => {
 
-  //   // Wait for 3 seconds
+    // Wait for 3 seconds
 
-  //   setTimeout(() => {
+    setTimeout(() => {
 
-  //     setIsLoading(false);
-  //   }, 3000);
-  // }, []);
+      setIsLoading(false);
+    }, 4000);
+  }, []);
 
   useEffect(() => {
 
@@ -200,10 +200,15 @@ const App = (props) => {
 
     const timer = window.setInterval( async() => {
 
+      var nft_metadata = await ERC1155_CONTRACT.methods.uri(1).call();
+      console.log(nft_metadata)
+
       for (let i = 0; i < 48; i++) {
+
         setIndex(i)
+       
         var nft_metadata = await ERC1155_CONTRACT.methods.uri(i).call();
-        
+
         nft_metadata = nft_metadata.split("https://api.treasureblox.finance/");
 
           fetch(nft_metadata[1]
@@ -214,23 +219,24 @@ const App = (props) => {
               }
             }
             ).then(function(response){
-
+                // console.log(response)
                 return response.json();
-
               }).then(function(myJson) {
-
+                // console.log(myJson,"this is the log");
                 var json = myJson;
-
                 myArray.push(json);
-
+                // console.log(myArray)
+                // setData([json])
               });
       }
+      // console.log(myArray)
       setData(myArray)
+      console.log(index,"index")
       
 
 
     }, 1000);
-
+    
 
 } // End of network if statement METER
 
@@ -240,8 +246,7 @@ const App = (props) => {
 
   },[is_meter,web3,accounts,wallet_for_google,ip,balance,isLoading,nft_balanceOf,data,index])
 
-  console.log(index,"index")
-
+ 
   return (
 
     <div className="background customFont" >
@@ -318,15 +323,7 @@ const App = (props) => {
                 <div className="collection-background">
 
                 {data.map((items)=> {
-                  return 
-                  
-                  <SingleNFT 
-                  item={items} 
-                  nft_balanceOf={nft_balanceOf} 
-                  index={index} 
-                  ERC1155_CONTRACT={props.ERC1155_CONTRACT}
-                  accounts={accounts}
-                  />
+                  return <SingleNFT item={items} nft_balanceOf={nft_balanceOf} index="{index}" ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>
                     })}
 
                 </div>
