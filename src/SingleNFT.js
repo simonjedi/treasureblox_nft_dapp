@@ -31,31 +31,31 @@ const SingleNFT = (props) => {
     trait[1] = ""
   }
   
-  console.log(props.item.image,"image")
-  console.log(props.nft_balanceOf,"bal")
-
-
+  // console.log(props.item.image,"image")
+  // console.log(props.nft_balanceOf[props.id],"bal")
+  var bal = props.nft_balanceOf[props.id]
+// Not used as each one is a whole NFT
   // balanceOfresult = props.nft_balanceOf.substring(0, tokenContract_xyz_.length-18)
 
   return(
     <div >
 
-    {(props.balanceOf >= 1)?(
+    {(bal >= 1)?(
       <div>
-        
-      </div>
-    ):(
-      <div>
-            <Card.Img variant="top"  src={props.item.image} key={props.item.image} alt="Logo" className='customRounded nftImg'/>
+          <Card.Img variant="top"  src={props.item.image} key={props.item.image} alt="Logo" className='customRounded nftImg'/>
             <div className="nftTitle">Name: {props.item.name}</div>
             <div className="nftSubTitle">TRAIT TYPE: {trait[0].toUpperCase()} {trait[1].toUpperCase()}</div>
             <div className="nftSubTitle">ITEM DESCRIPTION: {props.item.attributes[0].value}</div>
-            <div className="nftSubTitle">YOUR BALANCE:  {props.nft_balanceOf}</div>
+            <div className="nftSubTitle">YOUR BALANCE:  {bal}</div>
             <div className="nftSubTitle">TOKEN ID:  {props.id}</div>
 
 
           <br/>
-
+        
+      </div>
+    ):(
+      <div>
+          
 
       </div>
     )}

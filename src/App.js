@@ -13,7 +13,6 @@ import getWeb3 from "./getWeb3";
 // 
 import SingleNFT from './SingleNFT';
 
-
 // import { NftProvider, useNft } from "use-nft"
 
 import Connection from "./Connection";
@@ -38,6 +37,10 @@ import { Helmet } from 'react-helmet';
 import axios from "axios";
 
 import ABI from './erc1155.json'
+import LOOTBOX_ABI from './LootboxABI.json'
+import TOKEN_ABI from './TokenABI.json'
+
+
 
 import { HashLink as LinkHeader } from 'react-router-hash-link';
 
@@ -92,6 +95,12 @@ const App = (props) => {
   const [erc1155_contract,setErc1155_contract] = useState(null)
   const [erc1155_contract_address,setErc1155_contract_address] = useState(null)
 
+  const [LootBox_contract,setLOOTBOX_contract] = useState(null)
+  const [LootBox_contract_address,setLOOTBOX_contract_address] = useState(null)
+
+  const [tokenContract,settokenContract] = useState(null)
+  const [tokenContract_Address,settokenContract_address] = useState(null)
+
   // wallet info
   const [wallet_for_google, setWallet_for_google_treasurebloxNative_] = useState('Unknown');
   const [ip, setIP_treasurebloxNative_] = useState('');
@@ -113,7 +122,7 @@ const App = (props) => {
   
   // Componant
   const [index, setIndex] = useState(0);
-  const [nft_balanceOf, setnft_balanceOf] = useState(13);
+  const [nft_balanceOf, setnft_balanceOf] = useState(1);
   const [loader, setLoader] = useState(true);
 
 
@@ -129,6 +138,20 @@ const App = (props) => {
   }
 
   let myArray = []
+  let balances = []
+
+  const handlePlay = async() => {
+
+    const allowance = await tokenContract.methods.allowance(accounts[0],LootBox_contract_address).call();
+
+    if (allowance <= web3.utils.toWei("10", 'ether')){
+      await tokenContract.methods.approve(LootBox_contract_address,web3.utils.toWei("100", 'ether')).send({from: accounts[0]});
+    }
+
+    const transaction = await LootBox_contract.methods.rollDice(accounts[0],1).send({from: accounts[0]});
+    
+  }
+
 
   useEffect(() => {
 
@@ -194,6 +217,7 @@ const App = (props) => {
     const accounts = await web3.eth.getAccounts();
 
     setAccounts(accounts)
+
     setWeb3(web3)
 
     const ERC1155_CONTRACT = new web3.eth.Contract(ABI,"https://rpc.meter.io/" && "0x4FBd2Db19de40e0fD36e91d7a848F84515a54242");
@@ -202,32 +226,48 @@ const App = (props) => {
     setErc1155_contract(ERC1155_CONTRACT)
     setErc1155_contract_address(ERC1155_CONTRACT_ADDRESS)
 
+
+    const LOOTBOX_CONTRACT = new web3.eth.Contract(LOOTBOX_ABI,"https://rpc.meter.io/" && "0x84502299d9E1c3d5fb207D17357D12E9F0476C89");
+    const LOOTBOX_CONTRACT_ADDRESS = "0x84502299d9E1c3d5fb207D17357D12E9F0476C89"
     
+    setLOOTBOX_contract(LOOTBOX_CONTRACT)
+    setLOOTBOX_contract_address(LOOTBOX_CONTRACT_ADDRESS)
+
+
+    const tokenContract = new web3.eth.Contract(TOKEN_ABI,"https://rpc.meter.io/" && "0x228ebBeE999c6a7ad74A6130E81b12f9Fe237Ba3");
+    const tokenContract_Address = "0x84502299d9E1c3d5fb207D17357D12E9F0476C89"
+    const decimals = await tokenContract.methods.decimals().call();
+
+    settokenContract(tokenContract)
+    settokenContract_address(tokenContract_Address)
+
+   
+
 
     const timer = window.setInterval( async() => {
 
       myArray = []
-
-      // balances = []
+      balances = []
 
 
       // var nft_metadata = await ERC1155_CONTRACT.methods.uri(0).call();
       // console.log(nft_metadata)
-
-      for (let i = 0; i < 49; i++) {
-        console.log(i)
+      // 46
+      for (let i = 0; i < 46; i++) {
+        // console.log(i)
         setIndex(i)
         my_index = i;
 
-        console.log(my_index)
+        // console.log(my_index)
        
         var nft_metadata = await ERC1155_CONTRACT.methods.uri(i).call();
+        var quick_bal = await ERC1155_CONTRACT.methods.balanceOf(accounts[0],i).call();
 
+        balances.push(quick_bal)
 
-        // balances.push(quick_bal)
-        console.log(nft_metadata)
+        // console.log(nft_metadata)
         nft_metadata = nft_metadata.split("https://api.treasureblox.finance/");
-        console.log(nft_metadata[1])
+        // console.log(nft_metadata[1])
           fetch(nft_metadata[1]
             ,{
               headers : { 
@@ -243,20 +283,24 @@ const App = (props) => {
                 var json = myJson;
                 
                 myArray.push(json);
+                
                 // console.log(myArray)
                 // setData([json])
               });
-        
-
+             
       }
       // console.log(myArray)
       setData(myArray)
-      setLoader(false)
-      console.log(index,"index")
-      console.log(data,"data")
-      console.log(myArray,"myarray")
+      setnft_balanceOf(balances)
 
-    }, 3000);
+      setLoader(false)
+      // console.log(index,"index")
+      // console.log(data,"data")
+      // console.log(myArray,"myarray")
+
+    }, 10000);
+
+    
     
 
 } // End of network if statement METER
@@ -266,6 +310,9 @@ const App = (props) => {
   init()
 
   },[is_meter,web3,accounts,wallet_for_google,ip,balance,isLoading,nft_balanceOf,data,index])
+
+
+  
 
   
   return (
@@ -301,16 +348,17 @@ const App = (props) => {
                 <Modal show={show} onHide={handleClose} 
                 size="md"
                 aria-labelledby="contained-modal-title-vcenter"
-                centered >
+                centered 
+                >
                 <Modal.Header closeButton>
-                  <Modal.Title>TreasureBlox Lootbox NFT's</Modal.Title>
+                  <Modal.Title className="customFont">TreasureBlox Lootbox NFT's</Modal.Title>
                 </Modal.Header>
-                <Modal.Body>Cost for 3 random NFT's - 2 MTRG</Modal.Body>
+                <Modal.Body className="customFont">Cost for 3 random NFT's - 2 MTRG</Modal.Body>
                 <Modal.Footer>
-                  <Button variant="secondary" onClick={handleClose}>
+                  <Button className="customButton customFont" variant="secondary" onClick={handleClose}>
                     Close
                   </Button>
-                  <Button variant="primary" onClick={handleClose}>
+                  <Button className="customButton customFont" onClick={handlePlay}>
                     Mint
                   </Button>
                 </Modal.Footer>
@@ -324,7 +372,7 @@ const App = (props) => {
                     Click generate to mint 3 random nft's - cost 2 MTRG!
                   </p>
                   <LinkHeader to="/home#yourAnchorTag">
-                  <Button  className="customButton" onClick={handleShow} id="header_play_to_earn" to="/home#yourAnchorTag" style={{margin:'10px'}}>Start</Button>
+                  <Button  className="customButton" onClick={handleShow} id="header_play_to_earn" style={{margin:'10px'}}>Start</Button>
                 </LinkHeader>
 
                 </center>
@@ -343,17 +391,17 @@ const App = (props) => {
 
                 <div className="collection-background">
 
-                <div class="container">
-                  <div class="row">
+                <div className="container">
+                  <div className="row">
 
-                  <div class="col-sm">
+                  <div className="col-sm">
 
 
                   {data.map((items,i) => {
 
                     return <div>
                       
-                    {(i % 4 == 0) &&  <SingleNFT id={0} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
+                    {(i % 4 == 0) &&  <SingleNFT id={i} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
 
                     </div>
                     
@@ -362,14 +410,14 @@ const App = (props) => {
 
                   </div>
 
-                  <div class="col-sm">
+                  <div className="col-sm">
 
 
                   {data.map((items,i) => {
 
                     return <div>
                       
-                    {(i % 4 == 1) &&  <SingleNFT id={0} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
+                    {(i % 4 == 1) &&  <SingleNFT id={i} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
 
                     </div>
                     
@@ -378,14 +426,14 @@ const App = (props) => {
 
                   </div>
 
-                  <div class="col-sm">
+                  <div className="col-sm">
 
 
                   {data.map((items,i) => {
 
                     return <div>
                       
-                    {(i % 4 == 2) &&  <SingleNFT id={0} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
+                    {(i % 4 == 2) &&  <SingleNFT id={i} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
 
                     </div>
                     
@@ -394,14 +442,14 @@ const App = (props) => {
 
                   </div>
 
-                  <div class="col-sm">
+                  <div className="col-sm">
 
 
                   {data.map((items,i) => {
 
                     return <div>
                       
-                    {(i % 4 == 3) &&  <SingleNFT id={0} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
+                    {(i % 4 == 3) &&  <SingleNFT id={i} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
 
                     </div>
                     
@@ -411,124 +459,6 @@ const App = (props) => {
                   </div>
 
 
-
-                   
-                    {/* <div class="col-sm">
-
-
-                      {data.map((items,i) => {
-
-                        return <div>
-                          
-                        {(i == 0) &&  <SingleNFT id={0} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 5) &&  <SingleNFT id={5} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 9) &&  <SingleNFT id={9} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 13) &&  <SingleNFT id={13} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 17) &&  <SingleNFT id={17} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 21) &&  <SingleNFT id={21} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 25) &&  <SingleNFT id={25} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 29) &&  <SingleNFT id={29} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 33) &&  <SingleNFT id={33} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 37) &&  <SingleNFT id={37} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 41) &&  <SingleNFT id={41} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 45) &&  <SingleNFT id={45} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-
-                        </div>
-                        
-                        }
-                      )}
-
-                    </div>
-
-
-
-                    <div class="col-sm">
-
-                      {data.map((items,i) => {
-
-                        return <div>
-                          
-                        {(i == 1) &&  <SingleNFT id={1} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 6) &&  <SingleNFT id={6} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 10) &&  <SingleNFT id={10} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 14) &&  <SingleNFT id={14} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 18) &&  <SingleNFT id={18} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 22) &&  <SingleNFT id={22} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 26) &&  <SingleNFT id={26} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 30) &&  <SingleNFT id={30} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 34) &&  <SingleNFT id={34} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 38) &&  <SingleNFT id={38} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 42) &&  <SingleNFT id={42} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 46) &&  <SingleNFT id={46} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-
-                        </div>
-                        
-                          
-                        }
-                      )}
-
-                    </div>
-
-
-                    <div class="col-sm">
-
-                      {data.map((items,i) => {
-
-                        return <div>
-                          
-                        {(i == 2) &&  <SingleNFT id={2} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 7) &&  <SingleNFT id={7} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 11) &&  <SingleNFT id={11} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 15) &&  <SingleNFT id={15} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 19) &&  <SingleNFT id={19} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 23) &&  <SingleNFT id={23} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 27) &&  <SingleNFT id={27} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 31) &&  <SingleNFT id={31} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 35) &&  <SingleNFT id={35} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 39) &&  <SingleNFT id={39} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 43) &&  <SingleNFT id={43} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                       
-                        </div>
-                        
-                          
-                        }
-                      )}
-
-                    </div>
-
-
-                    <div class="col-sm">
-
-                      {data.map((items,i) => {
-
-                        return <div>
-                          
-                        {(i == 3) &&  <SingleNFT id={3} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 8) &&  <SingleNFT id={8} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 12) &&  <SingleNFT id={12} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 16) &&  <SingleNFT id={16} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 20) &&  <SingleNFT id={20} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 24) &&  <SingleNFT id={24} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 28) &&  <SingleNFT id={28} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 32) &&  <SingleNFT id={32} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 36) &&  <SingleNFT id={36} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 40) &&  <SingleNFT id={40} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        {(i == 44) &&  <SingleNFT id={44} item={items} nft_balanceOf={nft_balanceOf} key={i} index={my_index} ERC1155_CONTRACT={props.ERC1155_CONTRACT}/>}
-                        
-                        </div>
-                        
-                          
-                        }
-                      )}
-
-                    </div> */}
-
-                    
-                    
-                    
-                    
-                 
-                   
                   </div>
                 </div>
 
