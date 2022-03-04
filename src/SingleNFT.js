@@ -19,43 +19,43 @@ import {
 
 
 
-const SingleNFT = async(props) => {
+const SingleNFT = (props) => {
 
   // Balance of NFTs
 
   // Transform Json Element
   var trait = props.item.attributes[0].trait_type.split("_")
+  if (trait[1]) {
+    
+  } else {
+    trait[1] = ""
+  }
+  
+  console.log(props.item.image,"image")
+  console.log(props.nft_balanceOf,"bal")
 
 
-  // balanceOfresult = nft_balanceOf.substring(0, tokenContract_xyz_.length-18)
-
+  // balanceOfresult = props.nft_balanceOf.substring(0, tokenContract_xyz_.length-18)
 
   return(
     <div >
 
     {(props.balanceOf >= 1)?(
       <div>
-         <Card className="cardRounded">
-            <Row className="cardRounded">
-            <Col xs={1} md={4} lg={2} xl={2}>
-            <Card.Img variant="top"  src="https://api.treasureblox.finance/v1/LootBox/CARBON/HIPPY.png" alt="Logo" className='customRounded nftImg'/>
-            </Col>
-            <Col xs={1} md={8} lg={10} xl={10} >
-            <Card.Text className="nftTitle">Name: {props.item.name}</Card.Text>
-
-            <Card.Text className="nftSubTitle">TRAIT TYPE: {trait[0].toUpperCase()} {trait[1].toUpperCase()}</Card.Text>
-            <Card.Text className="nftSubTitle">ITEM DESCRIPTION: {props.item.attributes[0].value}</Card.Text>
-            {/* <Card.Text className="nftSubTitle">YOUR BALANCE:  {props.nft_balanceOf}</Card.Text> */}
-
-            
-            </Col>
-            </Row>
-
-          </Card>
-            <br/>
+        
       </div>
     ):(
       <div>
+            <Card.Img variant="top"  src={props.item.image} key={props.item.image} alt="Logo" className='customRounded nftImg'/>
+            <div className="nftTitle">Name: {props.item.name}</div>
+            <div className="nftSubTitle">TRAIT TYPE: {trait[0].toUpperCase()} {trait[1].toUpperCase()}</div>
+            <div className="nftSubTitle">ITEM DESCRIPTION: {props.item.attributes[0].value}</div>
+            <div className="nftSubTitle">YOUR BALANCE:  {props.nft_balanceOf}</div>
+            <div className="nftSubTitle">TOKEN ID:  {props.id}</div>
+
+
+          <br/>
+
 
       </div>
     )}
