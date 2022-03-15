@@ -229,7 +229,7 @@ const App = (props) => {
 
     const LOOTBOX_CONTRACT = new web3.eth.Contract(LOOTBOX_ABI,"https://rpc.meter.io/" && "0x84502299d9E1c3d5fb207D17357D12E9F0476C89");
     const LOOTBOX_CONTRACT_ADDRESS = "0x84502299d9E1c3d5fb207D17357D12E9F0476C89"
-    
+     
     setLOOTBOX_contract(LOOTBOX_CONTRACT)
     setLOOTBOX_contract_address(LOOTBOX_CONTRACT_ADDRESS)
 
